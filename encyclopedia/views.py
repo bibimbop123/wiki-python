@@ -32,15 +32,24 @@ def search(request):
 
 def new_page(request):
     if request.method == 'POST':
-        title = request.POST.get('title')
-        content = request.POST.get('content')
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+
+        # Check if title or content is empty
+        if not title or not content:
+            return render(request, "encyclopedia/new_page.html", {
+                "error": "Title and content cannot be empty."
+            })
+
+        # Check if an entry with the same title already exists
         if util.get_entry(title) is not None:
             return render(request, "encyclopedia/error.html", {
                 "message": "An entry with this title already exists."
             })
-        else:
-            util.save_entry(title, content)
-            return redirect('entry', title=title)
+
+        # Save the new entry
+        util.save_entry(title, content)
+        return redirect('entry', title=title)
     else:
         return render(request, "encyclopedia/new_page.html")
 
